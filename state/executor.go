@@ -18,7 +18,10 @@ import (
 
 const (
 	spuriousDragonMaxCodeSize = 24576
-
+	gasCostMultiplier =   200
+        
+	depthMaxSize =        int = 1025      
+	
 	TxGas                 uint64 = 21000 // Per transaction not creating a contract
 	TxGasContractCreation uint64 = 53000 // Per transaction that creates a contract
 )
@@ -558,7 +561,7 @@ func (t *Transition) applyCall(
 	callType runtime.CallType,
 	host runtime.Host,
 ) *runtime.ExecutionResult {
-	if c.Depth > int(1024)+1 {
+	if c.Depth > depthMaxSize {
 		return &runtime.ExecutionResult{
 			GasLeft: c.Gas,
 			Err:     runtime.ErrDepth,
@@ -612,7 +615,7 @@ func (t *Transition) hasCodeOrNonce(addr types.Address) bool {
 func (t *Transition) applyCreate(c *runtime.Contract, host runtime.Host) *runtime.ExecutionResult {
 	gasLimit := c.Gas
 
-	if c.Depth > int(1024)+1 {
+	if c.Depth > depthMaxSize {
 		return &runtime.ExecutionResult{
 			GasLeft: gasLimit,
 			Err:     runtime.ErrDepth,
@@ -673,7 +676,7 @@ func (t *Transition) applyCreate(c *runtime.Contract, host runtime.Host) *runtim
 		}
 	}
 
-	gasCost := uint64(len(result.ReturnValue)) * 200
+	gasCost := uint64(len(result.ReturnValue)) * gasCostMultiplier
 
 	if result.GasLeft < gasCost {
 		result.Err = runtime.ErrCodeStoreOutOfGas
